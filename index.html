@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Netflix — Two-tab D3 Dashboard</title>
+
+  <!-- D3 v7 -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+
+  <style>
+    /* --- Overall layout --- */
+    body { font-family: Arial, Helvetica, sans-serif; margin: 0; background:#111; color:#eee; }
+    header { background:#181818; padding:14px 20px; display:flex; align-items:center; gap:20px;}
+    h1 { margin:0; color:#e31b23; letter-spacing:3px; font-size:20px; }
+    .tabs { margin-left:auto; display:flex; gap:8px; }
+    .tab { padding:8px 12px; border-radius:6px; cursor:pointer; background:#222; color:#fff; }
+    .tab.active { background:#e31b23; color:#111; font-weight:700; }
+
+    /* --- Main content area --- */
+    .container { padding:18px; display:grid; grid-template-columns: 1fr; gap:12px; }
+
+    /* --- toolbar / filters --- */
+    .toolbar { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+    .filter { background:#1a1a1a; padding:8px; border-radius:6px; border:1px solid #333; }
+
+    select, input[type="range"] { background:#222; color:#eee; border:1px solid #333; padding:6px; border-radius:4px; }
+
+    /* --- KPI cards --- */
+    .kpis { display:flex; gap:12px; }
+    .kpi { background:#1b1b1b; padding:12px; border-radius:8px; border:1px solid #3a0000; width:160px; text-align:center; }
+    .kpi .value { font-size:20px; font-weight:700; color:#ffdede; }
+
+    /* --- charts grid --- */
+    .grid { display:grid; gap:12px; grid-template-columns: 1fr 1fr; }
+
+    .card { background:#111; border:1px solid #2b2b2b; border-radius:8px; padding:10px; min-height:120px; }
+    svg { width:100%; height:100%; }
+
+    /* --- table --- */
+    table { width:100%; border-collapse:collapse; color:#ddd; font-size:13px; }
+    th, td { padding:8px; border-bottom:1px solid #222; text-align:left; }
+    tr:hover { background:#1a1a1a; cursor:pointer; }
+
+    /* responsive */
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: 1fr; }
+      .kpis { flex-wrap:wrap; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>NETFLIX</h1>
+
+    <div class="tabs">
+      <div class="tab active" id="tab-summary">Summary</div>
+      <div class="tab" id="tab-imdb">IMDB Exploration</div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- FILTERS / TOOLBAR -->
+    <div class="toolbar">
+      <div class="filter">
+        <label>Type:
+          <select id="filter-type">
+            <option value="All">All</option>
+            <option value="Movie">Movie</option>
+            <option value="TV Show">TV Show</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="filter">
+        <label>Year range:
+          <input id="year-min" type="number" step="1" style="width:80px" />
+          —
+          <input id="year-max" type="number" step="1" style="width:80px" />
+        </label>
+      </div>
+
+      <div class="filter">
+        <label>IMDB rating >=
+          <input id="imdb-min" type="number" min="0" max="10" step="0.1" style="width:70px" />
+        </label>
+      </div>
+
+      <div class="filter">
+        <button id="reset">Reset Filters</button>
+      </div>
+    </div>
+
+    <!-- SUMMARY tab content -->
+    <section id="summary" class="">
+      <div style="margin-top:8px" class="kpis">
+        <div class="kpi"><div>Avg IMDB</div><div class="value" id="kpi-imdb">—</div></div>
+        <div class="kpi"><div>Total Votes</div><div class="value" id="kpi-votes">—</div></div>
+        <div class="kpi"><div># Titles</div><div class="value" id="kpi-count">—</div></div>
+      </div>
+
+      <div style="height:12px"></div>
+
+      <div class="grid">
+        <div class="card" id="chart-line"><h4 style="margin:2px 0 6px 0">Titles Added per Release Year</h4></div>
+        <div class="card" id="chart-rating"><h4 style="margin:2px 0 6px 0">Counts by Rating Category</h4></div>
+
+        <div class="card" id="chart-country"><h4 style="margin:2px 0 6px 0">Top Countries (Titles)</h4></div>
+        <div class="card" id="chart-genre"><h4 style="margin:2px 0 6px 0">Genres Treemap</h4></div>
+      </div>
+    </section>
+
+    <!-- IMDB tab content -->
+    <section id="imdb" style="display:none; margin-top:6px">
+      <div class="grid">
+        <div class="card" id="chart-imdb-bar"><h4 style="margin:2px 0 6px 0">Average IMDB by Type (Movie vs TV Show)</h4></div>
+        <div class="card" id="chart-wordcloud"><h4 style="margin:2px 0 6px 0">Description Word Frequency (click word to filter)</h4></div>
+
+        <div class="card" style="grid-column:1 / span 2;">
+          <h4 style="margin:2px 0 6px 0">Top IMDB Titles (click a row to filter)</h4>
+          <div id="table-wrap" style="max-height:280px; overflow:auto;"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="chart.js"></script>
+</body>
+</html>
